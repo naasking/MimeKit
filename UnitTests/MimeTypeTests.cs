@@ -35,6 +35,17 @@ namespace UnitTests {
 	public class MimeTypeTests
 	{
 		[Test]
+		public void TestArgumentExceptions ()
+		{
+			Assert.Throws<ArgumentNullException> (() => MimeTypes.GetMimeType (null));
+			Assert.Throws<ArgumentNullException> (() => MimeTypes.Register (null, ".ext"));
+			Assert.Throws<ArgumentException> (() => MimeTypes.Register (string.Empty, ".ext"));
+			Assert.Throws<ArgumentNullException> (() => MimeTypes.Register ("text/plain", null));
+			Assert.Throws<ArgumentException> (() => MimeTypes.Register ("text/plain", string.Empty));
+			Assert.Throws<ArgumentNullException> (() => MimeTypes.TryGetExtension (null, out _));
+		}
+
+		[Test]
 		public void TestGetMimeTypeNullFileName ()
 		{
 			Assert.Throws<ArgumentNullException> (() => MimeTypes.GetMimeType (null));
@@ -82,13 +93,24 @@ namespace UnitTests {
 		}
 
 		[Test]
-		public void TestMimeTypeRegister()
+		public void TestMimeTypeRegister ()
 		{
-			Assert.AreEqual("application/octet-stream", MimeTypes.GetMimeType(".msg"));
-			Assert.False(MimeTypes.TryGetExtension("application/vnd.ms-outlook", out var ext1));
-			MimeTypes.Register("application/vnd.ms-outlook", ".msg");
-			Assert.True(MimeTypes.TryGetExtension("application/vnd.ms-outlook", out var ext2));
-			Assert.AreEqual(".msg", ext2);
+			string extension;
+
+			Assert.AreEqual ("application/octet-stream", MimeTypes.GetMimeType ("message.msg"));
+			Assert.False (MimeTypes.TryGetExtension ("application/vnd.ms-outlook", out extension));
+
+			MimeTypes.Register ("application/vnd.ms-outlook", ".msg");
+
+			Assert.AreEqual ("application/vnd.ms-outlook", MimeTypes.GetMimeType ("message.msg"));
+			Assert.True (MimeTypes.TryGetExtension ("application/vnd.ms-outlook", out extension));
+			Assert.AreEqual (".msg", extension);
+
+			MimeTypes.Register ("application/bogus", "bogus");
+
+			Assert.AreEqual ("application/bogus", MimeTypes.GetMimeType ("fileName.bogus"));
+			Assert.True (MimeTypes.TryGetExtension ("application/bogus", out extension));
+			Assert.AreEqual (".bogus", extension);
 		}
 	}
 }
